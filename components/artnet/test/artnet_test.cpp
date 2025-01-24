@@ -22,7 +22,8 @@
 
 #define private public
 #include "artnet_test.h"
-#include "artnetplugin.h"
+#include "IDMX512Config.hpp"
+#include "IDMX512Delivery.hpp"
 #undef private
 
 /****************************************************************************
@@ -31,18 +32,17 @@
 
 void ArtNet_Test::setupArtNetDmx()
 {
-    ArtNetPlugin artPlug;
+    IDMX512Config& dmxConfig = IDMX512Config::instance();
+    IDMX512Delivery& dmxDelivery = IDMX512Delivery::instance();
+
     quint32 universe = 4;
     quint32 channel = 6;
 
-    QStringList outs = artPlug.outputs();
+    std::vector<std::string> outs = dmxConfig.outputs();
 
     for(auto&& out : outs) {
         qDebug() << out;
-    }
-
-    for(quint32 i = 0; i < outs.size(); ++i) {
-        artPlug.openOutput(i, universe);
+        dmxConfig.openOutput(out, universe);
     }
 
     QByteArray data{512, 0};
@@ -51,7 +51,7 @@ void ArtNet_Test::setupArtNetDmx()
         for(auto val = 0; val < 256; ++val) {
             data[channel] = val;
             for(quint32 i = 0; i < outs.size(); ++i) {
-                artPlug.writeUniverse(universe, i, data, true);
+                dmxDelivery.writeUniverse(universe, data);
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(30));
         }
@@ -59,7 +59,7 @@ void ArtNet_Test::setupArtNetDmx()
         for(auto val = 254; val > 0; --val) {
             data[channel] = val;
             for(quint32 i = 0; i < outs.size(); ++i) {
-                artPlug.writeUniverse(universe, i, data, true);
+                dmxDelivery.writeUniverse(universe, data);
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(30));
         }

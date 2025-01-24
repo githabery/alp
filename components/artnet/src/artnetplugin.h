@@ -28,6 +28,8 @@
 #include <QFile>
 
 #include "artnetcontroller.h"
+#include "IDMX512Config.hpp"
+#include "IDMX512Delivery.hpp"
 
 #define SETTINGS_IFACE_WAIT_TIME "ArtNetPlugin/ifacewait"
 
@@ -44,6 +46,8 @@ typedef struct _aio
 #define ARTNET_TRANSMITMODE "transmitMode"
 
 class ArtNetPlugin: public QObject
+                  , public IDMX512Config
+                  , public IDMX512Delivery
 {
     Q_OBJECT
 
@@ -54,13 +58,8 @@ public:
     /** @reimp */
     virtual ~ArtNetPlugin();
 
-    /** @reimp */
     void init();
 
-    /** @reimp */
-    QString name();
-
-    /** @reimp */
     int capabilities() const;
 
 private:
@@ -70,27 +69,22 @@ private:
      * Outputs
      *********************************************************************/
 public:
-    /** @reimp */
     bool openOutput(quint32 output, quint32 universe);
-
-    /** @reimp */
     void closeOutput(quint32 output, quint32 universe);
 
     /** @reimp */
-    QStringList outputs();
+    virtual bool openOutput(std::string output, uint32_t universe) override;
 
     /** @reimp */
+    virtual void closeOutput(std::string output, uint32_t universe) override;
+
+    /** @reimp */
+    virtual std::vector<std::string> outputs() override;
+
     void writeUniverse(quint32 universe, quint32 output, const QByteArray& data, bool dataChanged);
 
-    /*********************************************************************
-     * Configuration
-     *********************************************************************/
-public:
     /** @reimp */
-    void configure();
-
-    /** @reimp */
-    void setParameter(quint32 universe, quint32 line, QString name, QVariant value);
+    virtual void writeUniverse(uint32_t universe, const QByteArray &data) override;
 
     /** Get a list of the available Input/Output lines */
     QList<ArtNetIO> getIOMapping();
@@ -102,16 +96,6 @@ private:
 
     /** Time to wait (in seconds) for interfaces to be ready */
     int m_ifaceWaitTime;
-
-    /********************************************************************
-     * RDM
-     ********************************************************************/
-public:
-    /** @reimp */
-    bool sendRDMCommand(quint32 universe, quint32 line, uchar command, QVariantList params);
-
-signals:
-    void rdmValueChanged(quint32 universe, quint32 line, QVariantMap data);
 
     /*********************************************************************
      * ArtNet socket
@@ -125,6 +109,9 @@ private slots:
 
 private:
     QWeakPointer<QUdpSocket> m_udpSocket;
+
+public:
+    static ArtNetPlugin sArtNetPlugin;
 };
 
 #endif

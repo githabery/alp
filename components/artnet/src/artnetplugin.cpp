@@ -23,6 +23,17 @@
 
 #include "artnetplugin.h"
 
+ArtNetPlugin ArtNetPlugin::sArtNetPlugin;
+
+IDMX512Config& IDMX512Config::instance() {
+    return ArtNetPlugin::sArtNetPlugin;
+}
+
+IDMX512Delivery& IDMX512Delivery::instance() {
+    return ArtNetPlugin::sArtNetPlugin;
+}
+
+
 bool addressCompare(const ArtNetIO &v1, const ArtNetIO &v2)
 {
     return v1.address.ip().toString() < v2.address.ip().toString();
@@ -72,11 +83,6 @@ void ArtNetPlugin::init()
     std::sort(m_IOmapping.begin(), m_IOmapping.end(), addressCompare);
 }
 
-QString ArtNetPlugin::name()
-{
-    return QString("ArtNet");
-}
-
 bool ArtNetPlugin::requestLine(quint32 line)
 {
     int retryCount = 0;
@@ -99,14 +105,14 @@ bool ArtNetPlugin::requestLine(quint32 line)
 /*********************************************************************
  * Outputs
  *********************************************************************/
-QStringList ArtNetPlugin::outputs()
+std::vector<std::string> ArtNetPlugin::outputs()
 {
-    QStringList list;
+    std::vector<std::string> list;
 
     init();
 
     foreach (ArtNetIO line, m_IOmapping)
-        list << line.address.ip().toString();
+        list.emplace_back(line.address.ip().toString().toStdString());
 
     return list;
 }
@@ -125,10 +131,7 @@ bool ArtNetPlugin::openOutput(quint32 output, quint32 universe)
                                                             m_IOmapping.at(output).address,
                                                             getUdpSocket(),
                                                             output, this);
-        connect(controller, SIGNAL(valueChanged(quint32,quint32,quint32,uchar)),
-                this, SIGNAL(valueChanged(quint32,quint32,quint32,uchar)));
-        connect(controller, SIGNAL(rdmValueChanged(quint32, quint32, QVariantMap)),
-                this , SIGNAL(rdmValueChanged(quint32, quint32, QVariantMap)));
+
         m_IOmapping[output].controller = controller;
     }
 
@@ -154,8 +157,43 @@ void ArtNetPlugin::closeOutput(quint32 output, quint32 universe)
     }
 }
 
+bool ArtNetPlugin::openOutput(std::string output, uint32_t universe)
+{
+    auto outs = outputs();
+    qint32 outIndex = -1;
+    for(std::size_t index = 0; index < outs.size(); ++index) {
+        if (output == outs[index]) {
+            outIndex = index;
+            break;
+        }
+    }
+
+    if (outIndex == -1) {
+        return false;
+    } else {
+        return openOutput(outIndex, universe);
+    }
+}
+
+void ArtNetPlugin::closeOutput(std::string output, uint32_t universe)
+{
+    auto outs = outputs();
+    qint32 outIndex = -1;
+    for(std::size_t index = 0; index < outs.size(); ++index) {
+        if (output == outs[index]) {
+            outIndex = index;
+            break;
+        }
+    }
+
+    if (outIndex != -1) {
+        closeOutput(outIndex, universe);
+    }
+}
+
 void ArtNetPlugin::writeUniverse(quint32 universe, quint32 output, const QByteArray &data, bool dataChanged)
 {
+    qDebug() << "sendDmx: universe" << universe << output;
     if (output >= (quint32)m_IOmapping.count())
         return;
 
@@ -164,41 +202,17 @@ void ArtNetPlugin::writeUniverse(quint32 universe, quint32 output, const QByteAr
         controller->sendDmx(universe, data, dataChanged);
 }
 
-
-/*********************************************************************
- * Configuration
- *********************************************************************/
-void ArtNetPlugin::configure()
+void ArtNetPlugin::writeUniverse(uint32_t universe, const QByteArray &data)
 {
-    // ConfigureArtNet conf(this);
-    // conf.exec();
-}
+    for(quint32 outIndex = 0; outIndex < m_IOmapping.size(); ++outIndex) {
+        writeUniverse(universe, outIndex, data, true);
 
-
-void ArtNetPlugin::setParameter(quint32 universe, quint32 line,
-                                QString name, QVariant value)
-{
-    if (line >= (quint32)m_IOmapping.length())
-        return;
-
-    ArtNetController *controller = m_IOmapping.at(line).controller;
-    if (controller == NULL)
-        return;
-
-    // If the Controller parameter is restored to its default value,
-    // unset the corresponding plugin parameter
-    bool unset;
-
-    if (name == ARTNET_OUTPUTIP)
-        unset = controller->setOutputIPAddress(universe, value.toString());
-    else if (name == ARTNET_OUTPUTUNI)
-        unset = controller->setOutputUniverse(universe, value.toUInt());
-    else if (name == ARTNET_TRANSMITMODE)
-        unset = controller->setTransmissionMode(universe, ArtNetController::stringToTransmissionMode(value.toString()));
-    else
-    {
-        qWarning() << Q_FUNC_INFO << name << "is not a valid ArtNet output parameter";
-        return;
+        ArtNetController *controller = m_IOmapping.at(outIndex).controller;
+        if (controller != NULL) {
+            if (controller->universesList().contains(universe)) {
+                controller->sendDmx(universe, data, true);
+            }
+        }
     }
 }
 
@@ -207,22 +221,6 @@ QList<ArtNetIO> ArtNetPlugin::getIOMapping()
     return m_IOmapping;
 }
 
-/********************************************************************
- * RDM
- ********************************************************************/
-
-bool ArtNetPlugin::sendRDMCommand(quint32 universe, quint32 line, uchar command, QVariantList params)
-{
-    qDebug() << "Sending RDM command on universe" << universe << "and line" << line;
-    if (line >= (quint32)m_IOmapping.count())
-        return false;
-
-    ArtNetController *controller = m_IOmapping.at(line).controller;
-    if (controller != NULL)
-        return controller->sendRDMCommand(universe, command, params);
-
-    return false;
-}
 
 /*********************************************************************
  * ArtNet socket

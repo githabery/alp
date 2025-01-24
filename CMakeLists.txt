@@ -14,6 +14,8 @@ find_package(Qt6 REQUIRED COMPONENTS Core Network)
 
 add_executable(AudioLightProcessor
   main.cpp
+  components/artnet/api/IDMX512Config.hpp
+  components/artnet/api/IDMX512Delivery.hpp
 )
 
 add_subdirectory(components)
