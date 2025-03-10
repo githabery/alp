@@ -20,6 +20,7 @@
 #include <QtTest/QTest>
 #include <thread>
 
+
 #define private public
 #include "artnet_test.h"
 #include "IDMX512Config.hpp"

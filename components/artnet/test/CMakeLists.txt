@@ -9,7 +9,6 @@ target_include_directories(artnet_test PRIVATE
 find_package(Qt6 REQUIRED COMPONENTS Test)
 
 target_link_libraries(artnet_test PRIVATE
-    # Remove: L../src
     Qt6::Core
     Qt6::Network
     Qt::Test

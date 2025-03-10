@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.28)
 
 project(AudioLightProcessor LANGUAGES CXX)
 
@@ -14,11 +14,10 @@ find_package(Qt6 REQUIRED COMPONENTS Core Network)
 
 add_executable(AudioLightProcessor
   main.cpp
-  components/artnet/api/IDMX512Config.hpp
-  components/artnet/api/IDMX512Delivery.hpp
 )
 
+add_subdirectory(thirdparty)
 add_subdirectory(components)
 
-target_link_libraries(AudioLightProcessor Qt6::Core)
+target_link_libraries(AudioLightProcessor Qt6::Core bassasio bass)
 
