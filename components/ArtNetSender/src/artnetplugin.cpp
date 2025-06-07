@@ -46,6 +46,7 @@ ArtNetPlugin::~ArtNetPlugin()
 void ArtNetPlugin::init()
 {
     QSettings settings;
+    universe = 4;
     QVariant value = settings.value(SETTINGS_IFACE_WAIT_TIME);
     if (value.isValid() == true)
         m_ifaceWaitTime = value.toInt();
@@ -202,20 +203,6 @@ void ArtNetPlugin::writeUniverse(quint32 universe, quint32 output, const QByteAr
         controller->sendDmx(universe, data, dataChanged);
 }
 
-void ArtNetPlugin::writeUniverse(uint32_t universe, const QByteArray &data)
-{
-    for(quint32 outIndex = 0; outIndex < m_IOmapping.size(); ++outIndex) {
-        writeUniverse(universe, outIndex, data, true);
-
-        ArtNetController *controller = m_IOmapping.at(outIndex).controller;
-        if (controller != NULL) {
-            if (controller->universesList().contains(universe)) {
-                controller->sendDmx(universe, data, true);
-            }
-        }
-    }
-}
-
 QList<ArtNetIO> ArtNetPlugin::getIOMapping()
 {
     return m_IOmapping;
@@ -287,4 +274,74 @@ void ArtNetPlugin::handlePacket(QByteArray const& datagram, QHostAddress const& 
                 break;
         }
     }
+}
+
+void ArtNetPlugin::pulse(int channel)
+{
+    pulseReady = false;
+    QByteArray data{512, 0};
+
+    for(auto val = 0; val < 256; ++val) {
+        data[channel] = val;
+        writeUniverse(universe, channel, data, true);
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    }
+
+    for(auto val = 255; val > 0; --val) {
+        data[channel] = val;
+        writeUniverse(universe, channel, data, true);
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    }
+    pulseReady = true;
+}
+
+bool ArtNetPlugin::isPulseReady()
+{
+    return pulseReady;
+}
+
+void ArtNetPlugin::setColor(int channel, int r, int g, int b)
+{
+    if (r > 255) r = 255;
+    if (g > 255) g = 255;
+    if (b > 255) b = 255;
+
+    while (r != this->r || g != this->g || b != this->b) {
+        setColorSmooth(channel, r, g, b);
+    }
+}
+
+void ArtNetPlugin::setColorSmooth(int channel, int targetR, int targetG, int targetB) {
+    updateChannel(this->r, targetR);
+    updateChannel(this->g, targetG);
+    updateChannel(this->b, targetB);
+
+    QByteArray data(512, 0);
+    data[channel + 1] = this->r;
+    data[channel + 2] = this->g;
+    data[channel + 3] = this->b;
+
+    writeUniverse(universe, channel, data, true);
+}
+
+void ArtNetPlugin::updateChannel(int& current, int target) {
+    int diff = target - current;
+    if (diff == 0) return;
+
+    int step = 0;
+    if (abs(diff) <= 10)      step = 1;
+    else if (abs(diff) <= 20) step = 2;
+    else                      step = 5;
+
+    current += (diff > 0) ? step : -step;
+}
+
+void ArtNetPlugin::setBrightness (int channel, int brightness)
+{
+    if (brightness > 255) brightness = 255;
+
+    QByteArray data{512, 0};
+    data[channel] = brightness;
+
+    writeUniverse(universe, channel, data, true);
 }

@@ -52,7 +52,7 @@ void ArtNet_Test::setupArtNetDmx()
         for(auto val = 0; val < 256; ++val) {
             data[channel] = val;
             for(quint32 i = 0; i < outs.size(); ++i) {
-                dmxDelivery.writeUniverse(universe, data);
+                //dmxDelivery.writeUniverse(universe, data);
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(30));
         }
@@ -60,7 +60,7 @@ void ArtNet_Test::setupArtNetDmx()
         for(auto val = 254; val > 0; --val) {
             data[channel] = val;
             for(quint32 i = 0; i < outs.size(); ++i) {
-                dmxDelivery.writeUniverse(universe, data);
+                //dmxDelivery.writeUniverse(universe, data);
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(30));
         }

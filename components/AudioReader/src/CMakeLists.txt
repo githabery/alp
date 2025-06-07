@@ -6,16 +6,12 @@ add_library(${module_name}
     BASSAsioReader.cpp
 )
 
-add_executable(asio_test WIN32 BASSAsioReader.cpp)
+target_include_directories(${module_name} PUBLIC ./)
 
 target_include_directories(${module_name} PUBLIC ../api)
 
 target_link_libraries(${module_name} PUBLIC
+    Qt6::Core
+    Qt6::Network
     bassasio
-
-)
-
-target_link_libraries(asio_test PUBLIC
-    bassasio
-    bass
 )

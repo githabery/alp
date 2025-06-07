@@ -1,0 +1,21 @@
+{
+    "channelsInfo": [
+        {
+            "DMXChannel": 0,
+            "active": true,
+            "functions": [
+                "PeakDetector"
+            ],
+            "id": 0,
+            "name": "Mic input with SST 1"
+        },
+        {
+            "DMXChannel": 0,
+            "active": false,
+            "functions": [
+            ],
+            "id": 1,
+            "name": "Mic input with SST 2"
+        }
+    ]
+}
