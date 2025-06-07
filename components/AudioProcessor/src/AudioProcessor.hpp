@@ -13,14 +13,12 @@ public:
 
     void init(int channel, float sampleRate) override;
 
-    // Добавить сэмплы, вернуть true если накоплено bufferSize
     void addSamples(const int16_t* samples, size_t count) override;
     void addSamples(const int32_t* samples, size_t count) override;
 
     bool addFunction(AudioFunctionType type) override;
     bool removeFunction(AudioFunctionType type) override;
 
-    // Получить амплитуды спектра
     const std::vector<float>& getSpectrum() const;
 
 private:

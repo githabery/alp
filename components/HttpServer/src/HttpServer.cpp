@@ -76,13 +76,13 @@ void HttpServer::setupRoutes()
         [](const QHttpServerRequest &request) {
             const auto queryParams = request.query();
 
-            // Проверяем наличие параметра id
+            // Перевіряємо наявність параметра id
             if (!queryParams.hasQueryItem("id")) {
                 return QHttpServerResponse("application/json", R"({"error":"Missing 'id'"})",
                                            QHttpServerResponse::StatusCode::BadRequest);
             }
 
-            // Преобразуем id в int
+            // Перетворимо id на int
             bool ok = false;
             int id = queryParams.queryItemValue("id").toInt(&ok);
             if (!ok) {
@@ -90,7 +90,7 @@ void HttpServer::setupRoutes()
                                            QHttpServerResponse::StatusCode::BadRequest);
             }
 
-            // Удаляем канал по id
+            // Видаляємо канал id
             IAudioManager& manager = IAudioManager::create();
             manager.removeChannel(id);
             manager.saveSettings();
@@ -161,7 +161,7 @@ void HttpServer::setupRoutes()
     });
 
 
-    // Добавим заголовки после каждого запроса
+    // Додамо заголовки після кожного запиту
     m_server.addAfterRequestHandler(&m_server, [](const QHttpServerRequest &, QHttpServerResponse &resp) {
         auto headers = resp.headers();
         headers.append(QHttpHeaders::WellKnownHeader::Server, "QtHttpServer");

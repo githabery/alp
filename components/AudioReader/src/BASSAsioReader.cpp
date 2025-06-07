@@ -41,7 +41,7 @@ std::vector<std::string> BASSAsioReader::getAsioDevices() {
 }
 
 int BASSAsioReader::getAsioFormat() {
-    DWORD format = BASS_ASIO_ChannelGetFormat(TRUE, 0); // TRUE — входной канал 0
+    DWORD format = BASS_ASIO_ChannelGetFormat(TRUE, 0); // TRUE — вхідний канал 0
     if (format == BASS_ASIO_FORMAT_16BIT)
     {
         return 16;
@@ -70,7 +70,7 @@ QStringList BASSAsioReader::getInputChannelNames() const {
     QStringList inputs;
     for (DWORD i = 0; i < getInputChannelCount(); ++i) {
         BASS_ASIO_CHANNELINFO channelInfo;
-        if (BASS_ASIO_ChannelGetInfo(TRUE, i, &channelInfo)) {  // TRUE - входной канал
+        if (BASS_ASIO_ChannelGetInfo(TRUE, i, &channelInfo)) {  // TRUE - вхідний канал
             inputs.append(channelInfo.name);
         } else {
             std::cerr << "Failed to get channel info for channel " << i

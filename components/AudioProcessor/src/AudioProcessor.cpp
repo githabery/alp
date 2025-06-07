@@ -97,7 +97,7 @@ void AudioProcessor::printSpectrum() const {
 
     std::vector<float> averages(barCount, 0.0f);
 
-    // Среднее арифметическое в каждом сегменте
+    // Середнє арифметичне у кожному сегменті
     for (size_t i = 0; i < barCount; ++i) {
         size_t start = i * segmentSize;
         size_t end = (i == barCount - 1) ? spectrumSize : (start + segmentSize);
@@ -109,13 +109,13 @@ void AudioProcessor::printSpectrum() const {
         averages[i] = sum / (end - start);
     }
 
-    constexpr float gain = 50.0f;  // усиление для удобного отображения
+    constexpr float gain = 50.0f;  // посилення для зручного відображення
 
     std::cout << "Spectrum (16 bars):\n";
 
     for (size_t i = 0; i < barCount; ++i) {
         int barHeight = static_cast<int>(averages[i] * gain);
-        if (barHeight > 10) barHeight = 10;  // максимум 10 решеток
+        if (barHeight > 10) barHeight = 10;  // максимум 10 грат
 
         for (int h = 0; h < barHeight; ++h) {
             std::cout << '#';
@@ -163,7 +163,7 @@ void AudioProcessor::peakDetector() {
     if (smoothedRMS > 0.015f && isRising == false) {
         isRising = true;
         if (dmxDelivery.isPulseReady())
-            //dmxDelivery.pulse(channel);
+            dmxDelivery.pulse(channel);
         std::cout<< "Send Pulse" << std::endl;
     }
     else if (smoothedRMS <= 0.015f && isRising == true) {
@@ -188,54 +188,54 @@ void AudioProcessor::musicColoriser() {
     int r, g, b;
 
     if (frequency < 80.0f) {
-        // Ниже 80 Гц - темно-красный
+        // Нижче 80 Гц — темно-червоний
         r = 128;
         g = 0;
         b = 0;
     }
     else if (frequency <= 4200.0f) {
-        // Основной диапазон инструментов 80-4200 Гц
-        // Используем логарифмическое распределение для большей плотности в низких частотах
+        // Основний діапазон інструментів 80–4200 Гц
+        // Використовуємо логарифмічний розподіл для більшої щільності на низьких частотах
 
         float logFreq = log(frequency / 80.0f) / log(4200.0f / 80.0f); // 0.0 - 1.0
 
         if (logFreq <= 0.2f) {
-            // 80-200 Гц примерно: Темно-красный -> Красный
+            // 80–200 Гц: Темно-червоний → Червоний
             float t = logFreq / 0.2f;
             r = (int)(128 + t * 127);
             g = 0;
             b = 0;
         }
         else if (logFreq <= 0.35f) {
-            // 200-500 Гц примерно: Красный -> Оранжевый
+            // 200–500 Гц: Червоний → Помаранчевий
             float t = (logFreq - 0.2f) / 0.15f;
             r = 255;
             g = (int)(t * 165);
             b = 0;
         }
         else if (logFreq <= 0.5f) {
-            // 500-900 Гц примерно: Оранжевый -> Желтый
+            // 500–900 Гц: Помаранчевий → Жовтий
             float t = (logFreq - 0.35f) / 0.15f;
             r = 255;
             g = (int)(165 + t * 90);
             b = 0;
         }
         else if (logFreq <= 0.65f) {
-            // 900-1600 Гц примерно: Желтый -> Желто-зеленый
+            // 900–1600 Гц: Жовтий → Жовто-зелений
             float t = (logFreq - 0.5f) / 0.15f;
             r = (int)(255 - t * 128);
             g = 255;
             b = 0;
         }
         else if (logFreq <= 0.8f) {
-            // 1600-2500 Гц примерно: Желто-зеленый -> Зеленый
+            // 1600–2500 Гц: Жовто-зелений → Зелений
             float t = (logFreq - 0.65f) / 0.15f;
             r = (int)(127 - t * 127);
             g = 255;
             b = 0;
         }
         else {
-            // 2500-4200 Гц: Зеленый -> Голубой
+            // 2500–4200 Гц: Зелений → Блакитний
             float t = (logFreq - 0.8f) / 0.2f;
             r = 0;
             g = 255;
@@ -243,14 +243,14 @@ void AudioProcessor::musicColoriser() {
         }
     }
     else if (frequency <= 6000.0f) {
-        // 4200-6000 Гц: Голубой -> Синий
+        // 4200–6000 Гц: Блакитний → Синій
         float t = (frequency - 4200.0f) / (6000.0f - 4200.0f);
         r = 0;
         g = (int)(255 - t * 255);
         b = 255;
     }
     else {
-        // 6000-8000 Гц: Синий -> Фиолетовый
+        // 6000–8000 Гц: Синій → Фіолетовий
         float t = (frequency - 6000.0f) / (8000.0f - 6000.0f);
         r = (int)(t * 255);
         g = 0;
@@ -264,11 +264,11 @@ float AudioProcessor::getDominantFrequency() const {
         return 0.0f; // Спектр пустой
     }
 
-    // Находим индекс с максимальной амплитудой
+    // Находимо індекс з максимальною амплітудою
     size_t maxIndex = 0;
     float maxMagnitude = spectrum[0];
 
-    // Начинаем с индекса 1, так как индекс 0 - это DC компонента (0 Гц)
+    // Починаємо з індексу 1, оскільки індекс 0 — це DC-компонента (0 Гц)
     for (size_t i = 1; i < spectrum.size(); ++i) {
         if (spectrum[i] > maxMagnitude) {
             maxMagnitude = spectrum[i];
@@ -276,9 +276,7 @@ float AudioProcessor::getDominantFrequency() const {
         }
     }
 
-    // Преобразуем индекс в частоту
-    // Формула: frequency = (index * sampleRate) / (2 * (bufferSize - 1))
-    // Для FFT размера N, получаем N/2+1 частотных компонент
+    // Перетворюємо індекс у частоту
     float frequency = (static_cast<float>(maxIndex) * sampleRate) / static_cast<float>(bufferSize);
     //std::cout << "Freq = " << frequency << std::endl;
     return frequency;

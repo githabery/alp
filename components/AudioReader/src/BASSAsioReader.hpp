@@ -16,21 +16,21 @@ public:
     BASSAsioReader();
     ~BASSAsioReader();
 
-    // Получение списка ASIO-устройств
+    // Отримання списку ASIO-пристроїв
     std::vector<std::string> getAsioDevices() override;
 
-    // Получение частоты дискретизации
+    // Отримання частоти дискретизації
     float getSampleRate() override;
     int getInputChannelCount() const override;
     QStringList getInputChannelNames() const override;
 
-    // Установка ASIO-устройства
+    // Встановлення ASIO-драйвера
     bool setAsioDevice(int deviceIndex) override;
 
-    // Подписка на аудиоданные
+    // Підписка на аудіодані
     bool subscribeToAudioData(unsigned int asioChannel, std::function<void(const void*, unsigned int)> callback) override;
 
-    // Отписка от аудиопотока
+    // Відписка від аудіопотоку
     bool unsubscribeFromAudioData(unsigned int asioChannel) override;
 
     bool startAsio() override;
